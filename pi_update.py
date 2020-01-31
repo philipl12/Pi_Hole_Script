@@ -1,11 +1,14 @@
 import os, smtplib, ssl
 
+# have system run all updates via os commands
 def update():
     os.system("sudo apt update")
     os.system("sudo apt full-upgrade -y")
     os.system('sudo apt clean')
     os.system('pihole -up')
-                
+
+    
+# read from file in this order: password, sender email, and receiver email
 def send_email():
     file = open('Email.txt', 'r')
     port = 465  # For SSL
@@ -26,6 +29,8 @@ def send_email():
         # TODO: Send email here
         server.sendmail(sender_email, receiver_email, message)
     
+    file.close()
 
+    
 update()
 send_email()
