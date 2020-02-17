@@ -1,25 +1,38 @@
-import os, smtplib, ssl
+import smtplib, ssl, subprocess
 
-# have system run all updates via os commands
+commands = ['sudo apt update', 'sudo apt full-upgrade -y', 'sudo apt clean', 'sudo apt autoremove', 'sudo cloudflared update', 'pihole -up', 'pihole -g']
+success_list = []
+
 def update():
-    os.system("sudo apt update")
-    os.system("sudo apt full-upgrade -y")
-    os.system('sudo apt clean')
-    os.system('pihole -up')
+    # Use list to perform subprocess commands
+    for command in commands:
+        success = subprocess.call(command, shell=True)
+        # Append either 0/1, needed to raise exception
+        success_list.append(success)
 
+    # Raise exception if any command didn't execute properly
+    if any(success_list):
+        raise Exception()
     
-# read from file in this order: password, sender email, and receiver email
-def send_email():
+# Rad from file in this order: password, sender email, and receiver email
+def send_email(result):
     file = open('Email.txt', 'r')
     port = 465  # For SSL
     password = file.readlines(1)[0]
 
     sender_email = file.readlines(2)[0]
     receiver_email = file.readlines(3)[0]
-    message = """\
-    Subject: Raspberry Pi
+    
+    if result:
+        message = """\
+        Subject: Raspberry Pi
 
-    Weekly updates performed."""
+        Weekly updates performed."""
+    else:
+        message = """\
+        Subject: Raspberry Pi ERROR
+
+        Weekly updates NOT performed."""
     
     # Create a secure SSL context
     context = ssl.create_default_context()
@@ -31,6 +44,12 @@ def send_email():
     
     file.close()
 
+# Execute functions with exception handling and send the correct email
+try:
+    update()
+except:
+    send_email(false)
+else:
+    send_email(true)
+    subprocess.call('sudo reboot', shell=True)
     
-update()
-send_email()
