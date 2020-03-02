@@ -1,12 +1,12 @@
 import smtplib, ssl, subprocess
 
-commands = ['sudo apt update', 'sudo apt full-upgrade -y', 'sudo apt clean', 'sudo apt autoremove', 'sudo cloudflared update', 'pihole -up', 'pihole -g']
+commands = ['apt update', 'apt full-upgrade -y', 'apt clean', 'apt autoremove', 'cloudflared update', 'pihole -up', 'pihole -g']
 success_list = []
 
 def update():
     # Use list to perform subprocess commands
     for command in commands:
-        success = subprocess.call(command, shell=True)
+        success = subprocess.call('sudo ' + command, shell=True)
         # Append either 0/1, needed to raise exception
         success_list.append(success)
 
@@ -27,12 +27,12 @@ def send_email(result):
         message = """\
         Subject: Raspberry Pi
 
-        Weekly updates performed."""
+        Weekly updates performed. """ + str(success_list).strip('[]')
     else:
         message = """\
         Subject: Raspberry Pi ERROR
 
-        Weekly updates NOT performed."""
+        Weekly updates NOT performed. """ + str(success_list).strip('[]')
     
     # Create a secure SSL context
     context = ssl.create_default_context()
@@ -51,5 +51,5 @@ except:
     send_email(false)
 else:
     send_email(true)
-    subprocess.call('sudo reboot', shell=True)
+#    subprocess.call('sudo reboot', shell=True)
     
